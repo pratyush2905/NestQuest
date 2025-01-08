@@ -2,7 +2,7 @@
 import axios from "axios";
 import { AiFillGithub } from "react-icons/ai";
 import { FcGoogle } from "react-icons/fc";
-import { useState } from "react";
+import { useCallback, useState } from "react";
 
 import { FieldValues, SubmitHandler, useForm } from "react-hook-form";
 import useRegisterModal from "@/app/hooks/useRegisterModal";
@@ -13,9 +13,12 @@ import Heading from "../Heading";
 import Input from "../inputs/Input";
 import { toast } from "react-hot-toast";
 import Button from "../Button";
+import { signIn } from "next-auth/react";
+import useLoginModal from "@/app/hooks/useLoginModal";
 
 const RegisterModal = () => {
   const registerModal = useRegisterModal();
+  const loginModal = useLoginModal();
 
   const [isLoading, setIsLoading] = useState(false);
 
@@ -31,10 +34,11 @@ const RegisterModal = () => {
     },
   });
 
- const onSubmit: SubmitHandler<FieldValues> = (data) => {
+  const onSubmit: SubmitHandler<FieldValues> = (data) => {
     setIsLoading(true);
 
-    axios.post('/api/register', data)
+    axios
+      .post("/api/register", data)
       .then(() => {
         registerModal.onClose();
       })
@@ -44,7 +48,14 @@ const RegisterModal = () => {
       .finally(() => {
         setIsLoading(false);
       });
-  }; 
+  };
+  
+    const toggle = useCallback(() => {
+      loginModal.onOpen();
+      registerModal.onClose();
+    },[loginModal, registerModal]);
+  
+
   const bodyContent = (
     <div className="flex flex-col gap-4">
       <Heading title="Welcome to NestQuest" subtitle="Create an Account" />
@@ -85,21 +96,21 @@ const RegisterModal = () => {
         outline
         label="Continue with Google"
         icon={FcGoogle}
-        onClick={() => {}}
+        onClick={() => signIn('google')}
       />
 
       <Button
         outline
         label="Continue with Github"
         icon={AiFillGithub}
-        onClick={() => {}}
+        onClick={() => signIn("github")}
       />
       <div className="text-neutral-500 text-center my-4 font-light">
         <div className=" justify-center flex flex-row items-center gap-2">
           <div>Already have an account?</div>
           <div
-            onClick={registerModal.onClose}
-            className="text-[#39288de9] cursor-pointer hover:underline"
+            onClick={toggle}
+            className="text-[#D5B263] cursor-pointer hover:underline"
           >
             Log In
           </div>
